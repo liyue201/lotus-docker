@@ -19,8 +19,9 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.sh 
 
 ENV PATH="$PATH:/root/.cargo/bin"
 
-RUN git clone https://github.com/filecoin-project/lotus.git --depth 1 --branch $BRANCH && \
-    cd lotus && \
+RUN git clone https://github.com/filecoin-project/lotus.git --depth 1 --branch $BRANCH
+
+RUN cd lotus && \
     /bin/bash -c "source /root/.cargo/env" && \
     make clean deps build lotus-bench && \
     install -C ./lotus /usr/local/bin/lotus && \

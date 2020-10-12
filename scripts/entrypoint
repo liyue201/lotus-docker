@@ -33,12 +33,12 @@ fi
 
 if [ "$MINER" = true ] ; then
     echo "Starting miner"
-    lotus-storage-miner run "$EXTRA_FLAGS" 
+    lotus-miner run "$EXTRA_FLAGS"
 fi
 
 if [ "$WORKER" = true ] ; then
     echo "Starting seal worker"
-    lotus-seal-worker run "$EXTRA_FLAGS"
+    lotus-worker run "$EXTRA_FLAGS"
 fi
 
 if [ "$SYNC" = true ] ; then
