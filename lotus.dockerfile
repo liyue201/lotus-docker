@@ -1,5 +1,5 @@
 # build container stage
-FROM stirlingx/lotus-build-env:latest build-env
+FROM stirlingx/lotus-build-env:latest AS build-env
 
 # branch or tag of the lotus version to build
 ARG BRANCH
