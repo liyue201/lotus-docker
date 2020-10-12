@@ -11,17 +11,17 @@ ENV RUSTFLAGS="-C target-cpu=native -g"
 ENV FFI_BUILD_FROM_SOURCE=1
 
 RUN apt-get update -y && \
-    apt-get install sudo curl git mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config -y
+	apt-get install sudo curl git mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config -y
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.sh && \
-    chmod +x rustup-init.sh && \
-    ./rustup-init.sh -y
+	chmod +x rustup-init.sh && \
+	./rustup-init.sh -y
 
 ENV PATH="$PATH:/root/.cargo/bin"
 
 RUN git clone https://github.com/filecoin-project/lotus.git --depth 1 --branch $BRANCH
 
-WORKDIR /root/lotus
+WORKDIR /go/lotus
 
 RUN /bin/bash -c "source /root/.cargo/env" &&  make build
 RUN make install
