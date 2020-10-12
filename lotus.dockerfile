@@ -21,13 +21,10 @@ ENV PATH="$PATH:/root/.cargo/bin"
 
 RUN git clone https://github.com/filecoin-project/lotus.git --depth 1 --branch $BRANCH
 
-RUN cd lotus && \
-    /bin/bash -c "source /root/.cargo/env" && \
-    make clean deps build lotus-bench && \
-    install -C ./lotus /usr/local/bin/lotus && \
-    install -C ./lotus-miner /usr/local/bin/lotus-miner && \
-    install -C ./lotus-worker /usr/local/bin/lotus-worker && \
-    install -C ./lotus-bench /usr/local/bin/lotus-bench
+WORKDIR /root/lotus
+
+RUN /bin/bash -c "source /root/.cargo/env" &&  make build
+RUN make install
 
 # runtime container stage
 FROM nvidia/opencl:runtime-ubuntu18.04
@@ -39,7 +36,6 @@ RUN apt update && \
 COPY --from=build-env /usr/local/bin/lotus /usr/local/bin/lotus
 COPY --from=build-env /usr/local/bin/lotus-miner /usr/local/bin/lotus-miner
 COPY --from=build-env /usr/local/bin/lotus-worker /usr/local/bin/lotus-worker
-COPY --from=build-env /usr/local/bin/lotus-bench /usr/local/bin/lotus-bench
 COPY --from=build-env /etc/ssl/certs /etc/ssl/certs
 
 COPY --from=build-env /lib/x86_64-linux-gnu/libdl.so.2 /lib/libdl.so.2
