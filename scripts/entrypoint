@@ -1,0 +1,58 @@
+#!/bin/sh
+EXTRA_FLAGS="${LOTUS_EXTRA_FLAGS:-""}"
+
+repeat() { while :; sleep 2; do $@ && return; done }
+
+# setup configuration
+cp /root/config.toml /root/.lotus/config.toml
+
+while getopts sdcimw option
+do
+    case "${option}" in
+        s) SYNC=true;;
+	i) IMPORT=true;;
+        d) DAEMON=true;;
+        c) CHAINWATCH=true;;
+	m) MINER=true;;
+	w) WORKER=true;;
+    esac
+done
+    
+if [ "$DAEMON" = true ] ; then
+    echo "Starting daemon"
+    # Start the daemon process
+    CHAIN_CAR="/chain/chain.car"
+    if [ "$IMPORT" = true ] && [ -f "$CHAIN_CAR" ] && [ ! -e "/root/.lotus/datastore" ]; then
+      lotus daemon --halt-after-import --import-chain "$CHAIN_CAR"
+      touch /root/.lotus/import-complete
+    else
+      echo "list /root/.lotus"
+      lotus daemon "$EXTRA_FLAGS"
+    fi
+fi
+
+if [ "$MINER" = true ] ; then
+    echo "Starting miner"
+    lotus-storage-miner run "$EXTRA_FLAGS" 
+fi
+
+if [ "$WORKER" = true ] ; then
+    echo "Starting seal worker"
+    lotus-seal-worker run "$EXTRA_FLAGS"
+fi
+
+if [ "$SYNC" = true ] ; then
+    echo "Starting sync wait"
+    # Start the daemon process and put it in the background
+    lotus daemon "$EXTRA_FLAGS" &
+    # Run the sync process until it dies
+    repeat lotus sync wait
+fi
+
+if [ "$CHAINWATCH" = true ] ; then
+    echo "Starting chainwatch"
+    # Start the daemon process and put it in the background
+    lotus daemon "$EXTRA_FLAGS" &
+    # Start the chainwatch process
+    repeat chainwatch run
+fi
