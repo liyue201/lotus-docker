@@ -22,5 +22,8 @@ sync-status:
 log:
 	docker logs lotus -f
 
+stop:
+	docker stop lotus
+
 rm:
 	docker rm lotus
