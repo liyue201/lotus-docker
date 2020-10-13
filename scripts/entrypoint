@@ -1,58 +1,84 @@
-#!/bin/sh
-EXTRA_FLAGS="${LOTUS_EXTRA_FLAGS:-""}"
+#!/bin/bash
 
-repeat() { while :; sleep 2; do $@ && return; done }
+repeat() { while :; sleep 3; do $@ && return; done }
 
 # setup configuration
-cp /root/config.toml /root/.lotus/config.toml
-
-while getopts sdcimw option
-do
-    case "${option}" in
-        s) SYNC=true;;
-	i) IMPORT=true;;
-        d) DAEMON=true;;
-        c) CHAINWATCH=true;;
-	m) MINER=true;;
-	w) WORKER=true;;
-    esac
-done
-    
-if [ "$DAEMON" = true ] ; then
-    echo "Starting daemon"
-    # Start the daemon process
-    CHAIN_CAR="/chain/chain.car"
-    if [ "$IMPORT" = true ] && [ -f "$CHAIN_CAR" ] && [ ! -e "/root/.lotus/datastore" ]; then
-      lotus daemon --halt-after-import --import-chain "$CHAIN_CAR"
-      touch /root/.lotus/import-complete
-    else
-      echo "list /root/.lotus"
-      lotus daemon "$EXTRA_FLAGS"
+if [ -f "/root/config.toml" ]; then
+    if [ ! -d /root/.lotus ]; then
+	mkdir /root/.lotus && \
+    	cp /root/config.toml /root/.lotus/config.toml
+    else cp /root/config.toml /root/.lotus/config.toml
     fi
 fi
 
-if [ "$MINER" = true ] ; then
-    echo "Starting miner"
-    lotus-miner run "$EXTRA_FLAGS"
+# make sure key/token permissions are correct
+if [ -d ~/.lotus/keystore ]; then
+    chmod -f 600 ~/.lotus/keystore/*
+fi
+if [ -f ~/.lotus/token ]; then
+    chmod -f 600 ~/.lotus/token
 fi
 
-if [ "$WORKER" = true ] ; then
-    echo "Starting seal worker"
-    lotus-worker run "$EXTRA_FLAGS"
+while getopts sdcin option
+do
+    case "${option}" in
+        s) SYNC=true;;
+        d) DAEMON=true;;
+        c) CHAINWATCH=true;;
+        i) IMPORT=true;;
+        n) IMPORT_SNAPSHOT=true;;
+    esac
+done
+
+if [ "$IMPORT" = true ] ; then
+    echo "Starting import wait"
+    CHAIN_CAR="/chain/chain.car"
+    if [ -f "$CHAIN_CAR" ] && [ ! -e "/root/.lotus/datastore" ]; then
+      /usr/local/bin/lotus daemon --halt-after-import --import-chain "$CHAIN_CAR"
+      touch /root/.lotus/import-complete
+    fi
+fi
+
+if [ "$IMPORT_SNAPSHOT" = true ] ; then
+    echo "Starting import wait"
+    if [ ! -e "/root/.lotus/datastore" ]; then
+      /usr/local/bin/lotus daemon --halt-after-import --import-snapshot $SNAPSHOTURL
+      touch /root/.lotus/import-complete
+      else
+        rm -fr ~/.lotus/datastore/chain/*
+        /usr/local/bin/lotus daemon --halt-after-import --import-snapshot $SNAPSHOTURL
+        touch /root/.lotus/import-complete
+    fi
 fi
 
 if [ "$SYNC" = true ] ; then
     echo "Starting sync wait"
     # Start the daemon process and put it in the background
-    lotus daemon "$EXTRA_FLAGS" &
+    /usr/local/bin/lotus daemon &
     # Run the sync process until it dies
-    repeat lotus sync wait
+    repeat /usr/local/bin/lotus sync wait
 fi
 
 if [ "$CHAINWATCH" = true ] ; then
     echo "Starting chainwatch"
     # Start the daemon process and put it in the background
-    lotus daemon "$EXTRA_FLAGS" &
+    /usr/local/bin/lotus daemon &
+    # wait until we are sure daemon is up (chainwatch will fail if daemon is not running and return 0 even when failing so repeat is not working)
+    sleep 120
     # Start the chainwatch process
     repeat chainwatch run
+fi
+
+if [ "$SHEDEXPORT" = true ] ; then
+    while true; do
+    echo "Exporting state"
+    /usr/local/bin/lotus-shed export --skip-old-msgs --recent-stateroots=900 $SHEDEXPORTPATH
+    timeout $SHEDEXPORTPERIOD /usr/local/bin/lotus daemon
+    done
+fi
+
+if [ "$DAEMON" = true ] ; then
+    echo "Starting daemon"
+    # Start the daemon process
+    /usr/local/bin/lotus daemon
 fi

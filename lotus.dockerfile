@@ -33,6 +33,7 @@ COPY --from=build-env /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/libgcc_s.so.1
 
 COPY config/config.toml /root/config.toml
 COPY scripts/entrypoint /bin/entrypoint
+RUN chmod 777 /bin/entrypoint
 
 # API port
 EXPOSE 1234/tcp
@@ -40,4 +41,4 @@ EXPOSE 1234/tcp
 # P2P port
 EXPOSE 1235/tcp
 
-ENTRYPOINT ["/bin/entrypoint"]
+# ENTRYPOINT ["/bin/entrypoint"]
