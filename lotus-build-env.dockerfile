@@ -11,3 +11,4 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.sh 
 ADD config/cargo /root/.cargo/config
 
 ENV PATH="$PATH:/root/.cargo/bin"
+ENV GOPROXY https://goproxy.cn
