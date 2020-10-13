@@ -6,7 +6,9 @@ See the first line of `Makefile` for the version of lotus.
 ## Build docker image
 
 ```
-make 
+make build-env
+make build-runtime
+make build
 ```
 
 ## Run lotus daemon

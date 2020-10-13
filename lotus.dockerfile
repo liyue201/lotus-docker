@@ -18,11 +18,7 @@ RUN /bin/bash -c "source /root/.cargo/env" &&  make build
 RUN make install
 
 # runtime container stage
-FROM nvidia/opencl:runtime-ubuntu18.04
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt update && \
-    apt upgrade -y && \
-    apt install mesa-opencl-icd ocl-icd-opencl-dev -y
+FROM stirlingx/lotus-runtime:latest
 
 COPY --from=build-env /usr/local/bin/lotus /usr/local/bin/lotus
 COPY --from=build-env /usr/local/bin/lotus-miner /usr/local/bin/lotus-miner
