@@ -11,6 +11,7 @@ ENV RUSTFLAGS="-C target-cpu=native -g"
 ENV FFI_BUILD_FROM_SOURCE=1
 
 RUN git clone https://github.com/filecoin-project/lotus.git --depth 1 --branch $BRANCH
+# ADD lotus /go/lotus
 
 WORKDIR /go/lotus
 

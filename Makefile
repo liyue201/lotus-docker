@@ -14,10 +14,7 @@ build-runtime:
 	docker build -t stirlingx/lotus-runtime -f lotus-runtime.dockerfile .
 
 run:
-	docker container run -p 1235:1235 -p 1234:1234 --detach --name lotus stirlingx/lotus:$(BRANCH)
-
-run-bash:
-	docker container run -p 1235:1235 -p 1234:1234 -it --entrypoint=/bin/bash --name lotus --rm stirlingx/lotus:$(BRANCH)
+	docker container run -p 1235:1235 -p 1234:1234 --detach --name lotus stirlingx/lotus:$(BRANCH) /bin/entrypoint -d
 
 bash:
 	docker exec -it lotus /bin/bash
