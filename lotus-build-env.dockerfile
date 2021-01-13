@@ -7,6 +7,8 @@ RUN apt-get update -y && \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustup-init.sh && \
 	chmod +x rustup-init.sh && \
 	./rustup-init.sh -y
+	
+RUN apt-get install libhwloc-dev -y
 
 ADD config/cargo /root/.cargo/config
 
